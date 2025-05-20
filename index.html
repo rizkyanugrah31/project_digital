@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kuis IPA - Eksplorasi Bumi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      background: linear-gradient(to bottom, #87ceeb, #e0f7fa);
+      padding: 30px;
+    }
+    .quiz-box, .start-screen {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      max-width: 600px;
+      margin: auto;
+    }
+    h2, h3 {
+      color: #2e7d32;
+    }
+    .question {
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+    }
+    .options button, .restart-btn, .export-btn {
+      display: block;
+      width: 100%;
+      margin: 10px auto;
+      padding: 12px 15px;
+      font-size: 1rem;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .options button:hover, .restart-btn:hover, .export-btn:hover {
+      background-color: #388e3c;
+    }
+    .feedback {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    #timer {
+      font-size: 1rem;
+      margin-bottom: 15px;
+      color: #d84315;
+    }
+    ol {
+      text-align: left;
+      max-width: 300px;
+      margin: 0 auto;
+      padding-left: 20px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 300px;
+    }
+    .earth-image {
+      width: 150px;
+      margin: 0 auto 20px;
+      display: block;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background music and sound effects -->
+  <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2023/03/16/audio_9938ce1c7d.mp3?filename=relaxing-music-14467.mp3" autoplay loop></audio>
+  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5f4fc65184.mp3?filename=correct-answer-1-96172.mp3"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_72d8b7fcf0.mp3?filename=wrong-answer-1-96173.mp3"></audio>
+
+  <!-- Start screen -->
+  <div class="start-screen">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/640px-The_Earth_seen_from_Apollo_17.jpg" 
+         alt="Bumi" class="earth-image">
+    <h2>Selamat datang di Kuis IPA - Eksplorasi Bumi 🌍</h2>
+    <input type="text" id="playerName" placeholder="Nama kamu">
+    <br><br>
+    <button onclick="startQuiz()" class="restart-btn">🌱 Mulai Kuis</button>
+    <button onclick="showLeaderboard()" class="restart-btn">🏆 Lihat Leaderboard</button>
+  </div>
+
+  <!-- Quiz box -->
+  <div class="quiz-box" style="display:none;">
+    <div id="timer">Waktu: <span id="time">30</span> detik</div>
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button onclick="nextQuestion()" id="nextBtn" style="display:none;" class="restart-btn">➡️ Lanjut</button>
+  </div>
+
+  <!-- JavaScript functionality -->
+  <script>
+    const questions = [
+      {
+        question: "Lapisan mantel bumi tersusun dari material yang bersifat...",
+        options: ["Padat dan dingin", "Padat dan panas", "Cair dan panas", "Cair dan dingin"],
+        correct: 1
+      },
+      {
+        question: "Inti bumi terbagi menjadi dua bagian, yaitu inti luar dan inti dalam. Perbedaan utamanya adalah bahwa inti luar berbentuk cair sedangkan inti dalam berbentuk padat.",
+        options: [
+          "Inti luar padat, inti dalam cair",
+          "Inti luar cair, inti dalam padat",
+          "Keduanya padat",
+          "Keduanya cair"
+        ],
+        correct: 1
+      },
+      {
+        question: "Pergerakan lempeng tektonik disebabkan oleh...",
+        options: [
+          "Gaya gravitasi bulan",
+          "Arus laut yang berkelanjutan",
+          "Arus konveksi yang terjadi di dalam mantel bumi",
+          "Angin yang bertiup di atmosfer"
+        ],
+        correct: 2
+      },
+      {
+        question: "Berdasarkan interaksi antara lempeng tektonik, manakah tipe perbatasan yang menunjukkan bahwa lempeng saling menjauh?",
+        options: [
+          "Perbatasan konvergen (lempeng bertabrakan)",
+          "Perbatasan divergen (lempeng menjauh)",
+          "Perbatasan transform (lempeng bergesekan)",
+          "Perbatasan statis (tidak ada pergerakan)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Gempa bumi terjadi akibat...",
+        options: [
+          "Pergerakan angin yang sangat kuat di atmosfer",
+          "Pergeseran atau patahan pada lempeng tektonik",
+          "Aktivitas gunung berapi saja",
+          "Gelombang laut tinggi atau tsunami"
+        ],
+        correct: 1
+      }
+    ];
+
+    let current = 0, score = 0, timer, timeLeft = 30, player = "";
+    function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
+    shuffle(questions);
+
+    function startTimer() {
+      timeLeft = 30;
+      document.getElementById("time").textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("time").textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer(-1);
+        }
+      }, 1000);
+    }
+
+    function startQuiz() {
+      player = document.getElementById("playerName").value.trim();
+      if (!player) return alert("Masukkan namamu!");
+      document.querySelector(".start-screen").style.display = "none";
+      document.querySelector(".quiz-box").style.display = "block";
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(timer);
+      const q = questions[current];
+      document.getElementById("question").textContent = `(${current+1}/${questions.length}) ${q.question}`;
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(idx);
+        optionsDiv.appendChild(btn);
+      });
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("nextBtn").style.display = "none";
+      startTimer();
+    }
+
+    function checkAnswer(selected) {
+      clearInterval(timer);
+      const correct = questions[current].correct;
+      if (selected === -1) {
+        document.getElementById("feedback").textContent = "⏰ Waktu habis!";
+        document.getElementById("wrongSound").play();
+      } else if (selected === correct) {
+        score += 20;
+        document.getElementById("feedback").textContent = "✅ Benar!";
+        document.getElementById("correctSound").play();
+      } else {
+        document.getElementById("feedback").textContent = `❌ Salah! Jawaban benar: ${questions[current].options[correct]}`;
+        document.getElementById("wrongSound").play();
+      }
+      document.querySelectorAll(".options button").forEach(b => b.disabled = true);
+      document.getElementById("nextBtn").style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current < questions.length) loadQuestion();
+      else showFinalScore();
+    }
+
+    function showFinalScore() {
+      const maxScore = questions.length * 20;
+      const leaderboard = JSON.parse(localStorage.getItem("ipaLeaderboard")) || [];
+      leaderboard.push({ name: player, score });
+      leaderboard.sort((a, b) => b.score - a.score);
+      localStorage.setItem("ipaLeaderboard", JSON.stringify(leaderboard));
+      const top5 = leaderboard.slice(0, 5);
+      let list = "<ol>" + top5.map(p => `<li>${p.name} - ${p.score}</li>`).join('') + "</ol>";
+
+      document.querySelector(".quiz-box").innerHTML = `
+        <h2>Skor akhir: ${score} / ${maxScore}</h2>
+        <h3>🏆 Leaderboard</h3>
+        ${list}
+        <button class='restart-btn' onclick='location.reload()'>Main Lagi</button>
+        <button class='export-btn' onclick='exportLeaderboard()'>📄 Ekspor Leaderboard</button>
+        <button class='export-btn' onclick='resetLeaderboard()'>❌ Reset Leaderboard</button>
+      `;
+    }
+
+    function showLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem("ipaLeaderboard")) || [];
+      if (!leaderboard.length) return alert("Belum ada data leaderboard.");
+      let list = "<ol>" + leaderboard.slice(0, 5).map(p => `<li>${p.name} - ${p.score}</li>`).join('') + "</ol>";
+      document.querySelector(".start-screen").innerHTML = `
+        <h2>🏆 Leaderboard</h2>
+        ${list}
+        <button class='restart-btn' onclick='location.reload()'>Kembali</button>
+        <button class='export-btn' onclick='exportLeaderboard()'>📄 Ekspor Leaderboard</button>
+        <button class='export-btn' onclick='resetLeaderboard()'>❌ Reset Leaderboard</button>
+      `;
+    }
+
+    function exportLeaderboard() {
+      const data = localStorage.getItem("ipaLeaderboard") || "[]";
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "leaderboard.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetLeaderboard() {
+      if (confirm("Apakah Anda yakin ingin menghapus leaderboard?")) {
+        localStorage.removeItem("ipaLeaderboard");
+        alert("Leaderboard berhasil dihapus.");
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
